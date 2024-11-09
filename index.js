@@ -40,24 +40,65 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Endpoint to check if a user is following a specific channel
-app.get("/check-follower", async (req, res) => {
-  const { userId, channelId } = req.query;
+// Endpoint to get userId from displayName
+app.get("/get-user-id", async (req, res) => {
+  const { displayName } = req.query;
+
+  if (!displayName) {
+    return res.status(400).json({ error: "displayName is required" });
+  }
 
   try {
     const response = await fetch(
-      `https://api.twitch.tv/helix/users/follows?from_id=${userId}&to_id=${channelId}`,
+      `https://api.twitch.tv/helix/users?login=${displayName}`,
       {
         headers: {
           "Client-ID": process.env.TWITCH_CLIENT_ID,
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`, // Ensure this token is valid
         },
       }
     );
     const data = await response.json();
 
-    // Check if the user is following the channel
-    res.json({ isFollowing: data.total > 0 });
+    if (response.ok && data.data.length > 0) {
+      // Return userId from the first matching user (should only be one)
+      res.json({ userId: data.data[0].id });
+    } else {
+      console.error("Error response from Twitch API:", data);
+      res
+        .status(response.status)
+        .json({ error: data.message || "User not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching user ID:", error);
+    res.status(500).json({ error: "Failed to fetch user ID" });
+  }
+});
+
+app.get("/check-follower", async (req, res) => {
+  const { userId, channelId } = req.query; // `channelId` is the broadcaster ID
+
+  try {
+    const response = await fetch(
+      `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${channelId}&user_id=${userId}`,
+      {
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+          Authorization: `Bearer ${authToken}`, // Ensure this token has the `moderator:read:followers` scope
+        },
+      }
+    );
+    const data = await response.json();
+
+    if (response.ok) {
+      // Check if the user is in the follower list (response will include this if user_id is provided)
+      res.json({ isFollowing: data.data.length > 0 });
+    } else {
+      console.error("Error response from Twitch API:", data);
+      res
+        .status(response.status)
+        .json({ error: data.message || "Failed to check follower status" });
+    }
   } catch (error) {
     console.error("Error fetching follower status:", error);
     res.status(500).json({ error: "Failed to check follower status" });
