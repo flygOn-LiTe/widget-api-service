@@ -10,7 +10,8 @@ let tokenExpiry = 0; // Track when the token expires
 // Use CORS middleware
 app.use(
   cors({
-    origin: "https://streamelements.com", // Replace with the actual URL of your Stream Elements overlay
+    origin:
+      "https://streamelements.com/overlay/672baf5e7b1569622df68ff4/yF8fi8kAnLCBRKpHaEx_VOy8ndRv0WnL0U1tA5Hj_iSs0PPT", // Replace with the actual URL of your Stream Elements overlay
     methods: ["GET", "POST"], // Allow specific HTTP methods if needed
     allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers if needed
   })
