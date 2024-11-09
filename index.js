@@ -61,7 +61,44 @@ app.use(async (req, res, next) => {
   }
   next();
 });
+// Redirect to Twitch for authorization
+app.get("/auth/twitch", (req, res) => {
+  const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${process.env.RAILWAY_PUBLIC_DOMAIN}/auth/twitch/callback&response_type=code&scope=moderator:read:followers`;
+  res.redirect(authUrl);
+});
 
+// Callback endpoint to handle the authorization code
+app.get("/auth/twitch/callback", async (req, res) => {
+  const { code } = req.query;
+
+  if (!code) {
+    return res.status(400).send("Authorization code is required");
+  }
+
+  try {
+    const response = await fetch(
+      `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_CLIENT_ID}&client_secret=${process.env.TWITCH_CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.RAILWAY_PUBLIC_DOMAIN}/auth/twitch/callback`,
+      {
+        method: "POST",
+      }
+    );
+    const data = await response.json();
+
+    if (data.access_token) {
+      userAccessToken = data.access_token;
+      refreshToken = data.refresh_token;
+      console.log("New user access token obtained:", userAccessToken);
+      console.log("New user refresh token obtained:", refreshToken);
+      res.send("Authorization successful. You can now use the token.");
+    } else {
+      console.error("Error fetching user access token:", data);
+      res.status(500).send("Failed to fetch user access token.");
+    }
+  } catch (error) {
+    console.error("Error during token exchange:", error);
+    res.status(500).send("Error during token exchange.");
+  }
+});
 // Endpoint to get userId from displayName using app access token
 app.get("/get-user-id", async (req, res) => {
   const { displayName } = req.query;
