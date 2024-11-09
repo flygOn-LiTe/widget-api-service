@@ -63,7 +63,7 @@ app.use(async (req, res, next) => {
 });
 // Redirect to Twitch for authorization
 app.get("/auth/twitch", (req, res) => {
-  const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${process.env.RAILWAY_PUBLIC_DOMAIN}/auth/twitch/callback&response_type=code&scope=moderator:read:followers`;
+  const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${process.env.PUBLIC_DOMAIN}/auth/twitch/callback&response_type=code&scope=moderator:read:followers`;
   res.redirect(authUrl);
 });
 
@@ -77,7 +77,7 @@ app.get("/auth/twitch/callback", async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_CLIENT_ID}&client_secret=${process.env.TWITCH_CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.RAILWAY_PUBLIC_DOMAIN}/auth/twitch/callback`,
+      `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_CLIENT_ID}&client_secret=${process.env.TWITCH_CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.PUBLIC_DOMAIN}/auth/twitch/callback`,
       {
         method: "POST",
       }
