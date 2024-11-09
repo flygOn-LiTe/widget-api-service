@@ -1,10 +1,20 @@
 const express = require("express");
+const cors = require("cors"); // Import the CORS package
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 let authToken = "";
 let tokenExpiry = 0; // Track when the token expires
+
+// Use CORS middleware
+app.use(
+  cors({
+    origin: "https://streamelements.com", // Replace with the actual URL of your Stream Elements overlay
+    methods: ["GET", "POST"], // Allow specific HTTP methods if needed
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers if needed
+  })
+);
 
 // Function to get a new OAuth token using Client Credentials Flow
 async function getAuthToken() {
