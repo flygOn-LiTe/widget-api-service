@@ -39,7 +39,13 @@ async function refreshUserAuthToken() {
     console.error("Error refreshing user access token:", error);
   }
 }
-
+// Middleware to check and refresh user token if necessary
+async function ensureValidUserToken(req, res, next) {
+  if (!userAccessToken || Date.now() >= userTokenExpiry) {
+    await refreshUserAuthToken();
+  }
+  next();
+}
 // Function to get a new app access token using Client Credentials Flow
 async function getAuthToken() {
   const response = await fetch(
@@ -100,7 +106,7 @@ app.get("/auth/twitch/callback", async (req, res) => {
   }
 });
 // Endpoint to get userId from displayName using app access token
-app.get("/get-user-id", async (req, res) => {
+app.get("/get-user-id", ensureValidUserToken, async (req, res) => {
   const { displayName } = req.query;
 
   if (!displayName) {
@@ -134,7 +140,7 @@ app.get("/get-user-id", async (req, res) => {
 });
 
 // Endpoint to check if a user is following a specific channel using user access token
-app.get("/check-follower", async (req, res) => {
+app.get("/check-follower", ensureValidUserToken, async (req, res) => {
   const { userId, channelId } = req.query;
 
   if (!userAccessToken) {
