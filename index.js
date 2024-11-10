@@ -4,13 +4,15 @@ require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+//These need to be stored in REDIS for persistent storage and so values can be updated, NOT in Enviroment variables *UPDATE THIS*
 let userAccessToken = process.env.TWITCH_USER_ACCESS_TOKEN; // Store the user access token here
 let refreshToken = process.env.TWITCH_REFRESH_TOKEN; // Store the refresh token here
 let userTokenExpiry = 0; // Track when the user token expires
 let authToken = ""; // App access token for public calls
 let tokenExpiry = 0; // Track when the app token expires
 
-// Use CORS middleware
+// Use CORS middleware -ISSUE WITH STREAM ELEMENTS MAKING ORIGIN NULL USING * FOR NOW
 app.use(
   cors({
     origin: "*",
@@ -19,8 +21,6 @@ app.use(
   })
 );
 
-console.log(encodeURIComponent(refreshToken));
-console.log(refreshToken);
 // Function to refresh the user access token using the refresh token
 async function refreshUserAuthToken() {
   try {
