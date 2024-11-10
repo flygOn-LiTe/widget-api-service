@@ -5,7 +5,14 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-//These need to be stored in REDIS for persistent storage and so values can be updated, NOT in Enviroment variables *UPDATE THIS*
+/*
+CHECKING FOLLOW STATUS REQUIRES USER ACCESS TOKEN WITH MODERATOR:READ:FOLLOWERS SCOPE 
+THIS REQUIRES A USER TO AUTHENTICATE WITH TWITCH AND AUTHORIZE THE APP TO ACCESS THEIR ACCOUNT
+MAY WANT TO BUILD A FRONTEND CLIENT TO HANDLE AUTHORIZATION AND TOKENS FOR MICROSERVICE
+ONCE AUTHORIZED TOKENS CAN BE REFRESHED AUTONOMOUSLY
+*/
+
+// *UPDATE THIS IMPORTANT* These need to be stored in REDIS for persistent storage and so values can be updated, NOT in Enviroment variables
 let userAccessToken = process.env.TWITCH_USER_ACCESS_TOKEN; // Store the user access token here
 let refreshToken = process.env.TWITCH_REFRESH_TOKEN; // Store the refresh token here
 let userTokenExpiry = 0; // Track when the user token expires
