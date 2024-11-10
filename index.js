@@ -6,6 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 let userAccessToken = process.env.TWITCH_USER_ACCESS_TOKEN; // Store the user access token here
 let refreshToken = process.env.TWITCH_REFRESH_TOKEN; // Store the refresh token here
+let userTokenExpiry = 0; // Track when the user token expires
 let authToken = ""; // App access token for public calls
 let tokenExpiry = 0; // Track when the app token expires
 
@@ -30,7 +31,8 @@ async function refreshUserAuthToken() {
     const data = await response.json();
     if (data.access_token) {
       userAccessToken = data.access_token;
-      refreshToken = data.refresh_token || refreshToken; // Update if new refresh token provided
+      refreshToken = data.refresh_token || refreshToken;
+      userTokenExpiry = Date.now() + data.expires_in * 1000; // Set the new expiry time
       console.log("User access token refreshed:", userAccessToken);
     } else {
       console.error("Error refreshing user access token:", data);
@@ -39,6 +41,7 @@ async function refreshUserAuthToken() {
     console.error("Error refreshing user access token:", error);
   }
 }
+
 // Middleware to check and refresh user token if necessary
 async function ensureValidUserToken(req, res, next) {
   if (!userAccessToken || Date.now() >= userTokenExpiry) {
@@ -93,6 +96,7 @@ app.get("/auth/twitch/callback", async (req, res) => {
     if (data.access_token) {
       userAccessToken = data.access_token;
       refreshToken = data.refresh_token;
+      userTokenExpiry = Date.now() + data.expires_in * 1000; // Set the new expiry time
       console.log("New user access token obtained:", userAccessToken);
       console.log("New user refresh token obtained:", refreshToken);
       res.send("Authorization successful. You can now use the token.");
@@ -142,10 +146,6 @@ app.get("/get-user-id", ensureValidUserToken, async (req, res) => {
 // Endpoint to check if a user is following a specific channel using user access token
 app.get("/check-follower", ensureValidUserToken, async (req, res) => {
   const { userId, channelId } = req.query;
-
-  if (!userAccessToken) {
-    await refreshUserAuthToken(); // Ensure token is valid before the request
-  }
 
   try {
     const response = await fetch(
