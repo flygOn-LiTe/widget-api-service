@@ -19,11 +19,19 @@ app.use(
   })
 );
 
+console.log(encodeURIComponent(refreshToken));
+console.log(refreshToken);
 // Function to refresh the user access token using the refresh token
 async function refreshUserAuthToken() {
   try {
     const response = await fetch(
-      `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_CLIENT_ID}&client_secret=${process.env.TWITCH_CLIENT_SECRET}&grant_type=refresh_token&refresh_token=${refreshToken}`,
+      `https://id.twitch.tv/oauth2/token?client_id=${
+        process.env.TWITCH_CLIENT_ID
+      }&client_secret=${
+        process.env.TWITCH_CLIENT_SECRET
+      }&grant_type=refresh_token&refresh_token=${encodeURIComponent(
+        refreshToken
+      )}`,
       {
         method: "POST",
       }
